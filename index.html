@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Maciek Jumper XDDD</title>
+  <title>Maciek Runer XD</title>
   <style>
     canvas {
       border: 1px solid black;
@@ -43,7 +43,7 @@
   </style>
 </head>
 <body>
-  <h1>Maciek Jumper XDDD</h1>
+  <h1>Maciek Runer xD</h1>
   <canvas id="gameCanvas" width="800" height="300"></canvas>
   
   <!-- Menu końca gry -->
@@ -171,11 +171,24 @@
     });
 
     // Obsługa skoku
-    window.addEventListener('keydown', (e) => {
-      if (e.code === 'Space' && !isJumping && gameRunning) {
+    function jump() {
+      if (!isJumping && gameRunning) {
         velocityY = jumpHeight;
         isJumping = true;
       }
+    }
+
+    // Obsługa klawiatury
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        jump();
+      }
+    });
+
+    // Obsługa dotyku
+    canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      jump();
     });
 
     // Start gry
