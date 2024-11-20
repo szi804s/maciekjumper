@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maciek Jumper XDDD</title>
+  <style>
+    canvas {
+      border: 1px solid black;
+      display: block;
+      margin: auto;
+      background-color: #f0f0f0;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    #gameOverMenu {
+      display: none;
+      text-align: center;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+    }
+    #restartButton {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+    #restartButton:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <h1>Maciek Jumper XDDD</h1>
+  <canvas id="gameCanvas" width="800" height="300"></canvas>
+  
+  <!-- Menu końca gry -->
+  <div id="gameOverMenu">
+    <h2>Koniec gry!</h2>
+    <p>Twój wynik: <span id="finalScore">0</span></p>
+    <button id="restartButton">Restartuj</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const playerImage = new Image();
+    playerImage.src = './twarz.png';
+
+    // Parametry gry
+    let playerX = 50;
+    let playerY = 220;
+    const playerSize = 50;
+    const gravity = 1.5;
+    let velocityY = 0;
+    const jumpHeight = -20;
+    let isJumping = false;
+
+    const obstacles = [];
+    const obstacleWidth = 20;
+    const obstacleHeight = 50;
+    const obstacleSpeed = 5;
+
+    let score = 0;
+    let gameRunning = true;
+
+    const gameOverMenu = document.getElementById('gameOverMenu');
+    const finalScore = document.getElementById('finalScore');
+    const restartButton = document.getElementById('restartButton');
+
+    // Funkcja do rysowania gracza
+    function drawPlayer() {
+      ctx.drawImage(playerImage, playerX, playerY, playerSize, playerSize);
+    }
+
+    // Tworzenie przeszkód
+    function createObstacle() {
+      if (!gameRunning) return;
+      const obstacleX = canvas.width;
+      const obstacleY = canvas.height - obstacleHeight;
+      obstacles.push({ x: obstacleX, y: obstacleY });
+    }
+
+    // Rysowanie przeszkód
+    function drawObstacles() {
+      ctx.fillStyle = 'red';
+      obstacles.forEach((obstacle, index) => {
+        ctx.fillRect(obstacle.x, obstacle.y, obstacleWidth, obstacleHeight);
+        obstacle.x -= obstacleSpeed;
+
+        // Usuwanie przeszkód poza ekranem
+        if (obstacle.x + obstacleWidth < 0) {
+          obstacles.splice(index, 1);
+          score++;
+        }
+      });
+    }
+
+    // Sprawdzanie kolizji
+    function checkCollision() {
+      return obstacles.some((obstacle) => {
+        return (
+          playerX < obstacle.x + obstacleWidth &&
+          playerX + playerSize > obstacle.x &&
+          playerY < obstacle.y + obstacleHeight &&
+          playerY + playerSize > obstacle.y
+        );
+      });
+    }
+
+    // Główna pętla gry
+    function gameLoop() {
+      if (!gameRunning) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Grawitacja
+      playerY += velocityY;
+      velocityY += gravity;
+
+      // Zatrzymanie na podłożu
+      if (playerY > canvas.height - playerSize) {
+        playerY = canvas.height - playerSize;
+        isJumping = false;
+      }
+
+      drawPlayer();
+      drawObstacles();
+
+      // Sprawdzanie kolizji
+      if (checkCollision()) {
+        endGame();
+      }
+
+      // Wyświetlanie punktów
+      ctx.fillStyle = 'black';
+      ctx.font = '20px Arial';
+      ctx.fillText(`Punkty: ${score}`, 10, 20);
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    // Funkcja końca gry
+    function endGame() {
+      gameRunning = false;
+      finalScore.textContent = score; // Wyświetlenie wyniku
+      gameOverMenu.style.display = 'block';
+    }
+
+    // Restart gry
+    restartButton.addEventListener('click', () => {
+      gameRunning = true;
+      score = 0;
+      playerY = 220;
+      obstacles.length = 0; // Usuwanie przeszkód
+      gameOverMenu.style.display = 'none'; // Ukrywanie menu
+      gameLoop();
+    });
+
+    // Obsługa skoku
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && !isJumping && gameRunning) {
+        velocityY = jumpHeight;
+        isJumping = true;
+      }
+    });
+
+    // Start gry
+    playerImage.onload = () => {
+      setInterval(createObstacle, 2000); // Tworzenie przeszkód co 2 sekundy
+      gameLoop();
+    };
+
+    // Obsługa błędu obrazu
+    playerImage.onerror = () => {
+      console.error("Nie można załadować obrazu 'twarz.png'. Upewnij się, że plik istnieje.");
+      gameLoop();
+    };
+  </script>
+</body>
+</html>
